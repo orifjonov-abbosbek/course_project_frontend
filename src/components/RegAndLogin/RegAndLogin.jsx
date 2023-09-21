@@ -1,45 +1,113 @@
 import React, { useState } from "react";
+import "./RegAndLogin.scss";
 
 const AuthComponent = () => {
   const [isRegistering, setIsRegistering] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
 
   const handleSwitchAuth = () => {
     setIsRegistering(!isRegistering);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your authentication logic here based on isRegistering state
-    if (isRegistering) {
-      // Handle registration
-    } else {
-      // Handle login
+    const endpoint = isRegistering
+      ? "https://course-project-llji.onrender.com/register"
+      : "https://course-project-llji.onrender.com/login";
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Authentication successful", data);
+
+        localStorage.setItem("token", data.token);
+      } else {
+        const errorData = await response.json();
+        console.error("Authentication failed", errorData);
+      }
+    } catch (error) {
+      console.error("An error occurred", error);
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
   return (
-    <div>
-      <h2>{isRegistering ? "Register" : "Login"}</h2>
+    <div className="reg_container">
       <form onSubmit={handleSubmit}>
+        <h2>{isRegistering ? "Register" : "Login"}</h2>
         {isRegistering && (
           <div>
-            <label htmlFor="username">Username:</label>
-            <input type="text" id="username" name="username" required />
+            <input
+              className="input"
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Username"
+              required
+              value={formData.username}
+              onChange={handleInputChange}
+            />
           </div>
         )}
         <div>
-          <label htmlFor="email">Email:</label>
-          <input type="email" id="email" name="email" required />
+          <input
+            className="input"
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            required
+            value={formData.email}
+            onChange={handleInputChange}
+          />
         </div>
         <div>
-          <label htmlFor="password">Password:</label>
-          <input type="password" id="password" name="password" required />
+          <input
+            className="input"
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            required
+            value={formData.password}
+            onChange={handleInputChange}
+          />
         </div>
-        <button type="submit">{isRegistering ? "Register" : "Login"}</button>
+
+        <button
+          className={isRegistering ? "Register" : "Login"}
+          onClick={handleSubmit}
+        >
+          {isRegistering ? "Register" : "Login"}
+        </button>
+        <label htmlFor="">
+          {isRegistering
+            ? "Already have an account:"
+            : "Don't have an account:"}
+        </label>
+        <button className="switch" onClick={handleSwitchAuth}>
+          {isRegistering ? " Login" : " Register"}
+        </button>
       </form>
-      <button onClick={handleSwitchAuth}>
-        {isRegistering ? "Switch to Login" : "Switch to Register"}
-      </button>
     </div>
   );
 };
