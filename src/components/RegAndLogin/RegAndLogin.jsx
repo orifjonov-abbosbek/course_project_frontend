@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./RegAndLogin.scss";
+import API_KEY from "../../api/api";
 
 const AuthComponent = () => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -15,9 +16,7 @@ const AuthComponent = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const endpoint = isRegistering
-      ? "https://course-project-llji.onrender.com/register"
-      : "https://course-project-llji.onrender.com/login";
+    const endpoint = isRegistering ? `${API_KEY}/register` : `${API_KEY}/login`;
 
     try {
       const response = await fetch(endpoint, {
@@ -33,6 +32,7 @@ const AuthComponent = () => {
         console.log("Authentication successful", data);
 
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.user.userId);
       } else {
         const errorData = await response.json();
         console.error("Authentication failed", errorData);
@@ -58,28 +58,30 @@ const AuthComponent = () => {
           <div>
             <input
               className="input"
-              type="text"
-              id="username"
-              name="username"
-              placeholder="Username"
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Email"
               required
-              value={formData.username}
+              value={formData.email}
               onChange={handleInputChange}
             />
           </div>
         )}
+
         <div>
           <input
             className="input"
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Email"
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Username"
             required
-            value={formData.email}
+            value={formData.username}
             onChange={handleInputChange}
           />
         </div>
+
         <div>
           <input
             className="input"

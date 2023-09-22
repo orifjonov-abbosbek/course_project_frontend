@@ -1,4 +1,4 @@
-const API_KEY = "https://course-project-llji.onrender.com/";
+const API_KEY = "https://course-project-llji.onrender.com";
 
 
 
