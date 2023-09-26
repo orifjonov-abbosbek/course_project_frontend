@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import "./RegAndLogin.scss";
 import API_KEY from "../../api/api";
 
+import { useNavigate } from "react-router-dom";
+
 const AuthComponent = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [formData, setFormData] = useState({
@@ -10,13 +12,17 @@ const AuthComponent = () => {
     password: "",
   });
 
+  const navigate = useNavigate();
+
   const handleSwitchAuth = () => {
     setIsRegistering(!isRegistering);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const endpoint = isRegistering ? `${API_KEY}/register` : `${API_KEY}/login`;
+    const endpoint = isRegistering
+      ? `http://localhost:3000/register`
+      : `http://localhost:3000/login`;
 
     try {
       const response = await fetch(endpoint, {
@@ -33,6 +39,7 @@ const AuthComponent = () => {
 
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.user.userId);
+        navigate("/");
       } else {
         const errorData = await response.json();
         console.error("Authentication failed", errorData);

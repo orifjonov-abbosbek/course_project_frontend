@@ -1,14 +1,10 @@
-// src/components/ReviewForm.js
-import React, { useState } from "react";
-import Dropzone from "react-dropzone";
-import API_KEY from "../../api/api";
-
-import Header from "../../components/Header/Header";
-
-import "./createReview.scss";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Header from "../../components/Header/Header";
+import "./createReview.scss";
+import Previews from "../../components/DragNdrop/Drag";
 
-const ReviewForm = () => {
+const CreateReviewForm = () => {
   const [formData, setFormData] = useState({
     reviewName: "",
     reviewedItem: "",
@@ -18,16 +14,23 @@ const ReviewForm = () => {
     rating: "",
   });
   const [file, setFile] = useState(null);
+  const [error, setError] = useState("");
+
+  const token = localStorage.getItem("token");
+  console.log(token)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
   };
 
-  const handleFileDrop = (acceptedFiles) => {
-    if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
-    }
+  const handleFileDrop = (droppedImage) => {
+    setFile(droppedImage);
+    console.log(file)
   };
 
   const handleSubmit = async (e) => {
@@ -38,6 +41,7 @@ const ReviewForm = () => {
     formDataToSend.append("reviewedItem", formData.reviewedItem);
     formDataToSend.append("group", formData.group);
     formDataToSend.append("tags", formData.tags);
+
     formDataToSend.append("reviewText", formData.reviewText);
     formDataToSend.append("rating", formData.rating);
     if (file) {
@@ -46,128 +50,151 @@ const ReviewForm = () => {
 
     try {
       const response = await axios.post(
-        "YOUR_SERVER_URL/api/reviews",
+        "http://localhost:3000/reviews",
         formDataToSend,
         {
           headers: {
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       if (response.status === 201) {
-      
         console.log("Review created successfully");
       } else {
+        setError("Failed to create the review.");
       }
     } catch (error) {
       console.error(error);
+      setError("An error occurred while creating the review.");
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (file) {
+        URL.revokeObjectURL(file.preview);
+      }
+    };
+  }, [file]);
+
   return (
-    <>
+    <div className="">
       <Header />
       <div className="createReview_container">
         <h2>Create a Review</h2>
+        {error && <p className="error">{error}</p>}
         <form onSubmit={handleSubmit}>
-          {/* Review Name */}
-          <div className="form-group">
-            <label htmlFor="reviewName">Review Name:</label>
-            <input
-              type="text"
-              id="reviewName"
-              name="reviewName"
-              value={formData.reviewName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+          <FormInput
+            label="Review Name"
+            name="reviewName"
+            type="text"
+            value={formData.reviewName}
+            onChange={handleInputChange}
+            required
+          />
+          <FormInput
+            label="Reviewed Item"
+            name="reviewedItem"
+            type="text"
+            value={formData.reviewedItem}
+            onChange={handleInputChange}
+            required
+          />
+          <FormInput
+            label="Group"
+            name="group"
+            type="text"
+            value={formData.group}
+            onChange={handleInputChange}
+            required
+          />
+          <FormInput
+            label="Tags"
+            name="tags"
+            type="text"
+            value={
+              Array.isArray(formData.tags)
+                ? formData.tags.join(",")
+                : formData.tags
+            }
+            onChange={handleInputChange}
+            placeholder="Comma-separated tags"
+            required
+          />
 
-          {/* Reviewed Item */}
-          <div className="form-group">
-            <label htmlFor="reviewedItem">Reviewed Item:</label>
-            <input
-              type="text"
-              id="reviewedItem"
-              name="reviewedItem"
-              value={formData.reviewedItem}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          {/* Group */}
-          <div className="form-group">
-            <label htmlFor="group">Group:</label>
-            <input
-              type="text"
-              id="group"
-              name="group"
-              value={formData.group}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          {/* Tags */}
-          <div className="form-group">
-            <label htmlFor="tags">Tags:</label>
-            <input
-              type="text"
-              id="tags"
-              name="tags"
-              value={formData.tags}
-              onChange={handleInputChange}
-              placeholder="Comma-separated tags"
-              required
-            />
-          </div>
-
-          {/* Review Text */}
-          <div className="form-group">
-            <label htmlFor="reviewText">Review Text:</label>
-            <textarea
-              id="reviewText"
-              name="reviewText"
-              value={formData.reviewText}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          {/* Rating */}
-          <div className="form-group">
-            <label htmlFor="rating">Rating:</label>
-            <input
-              type="number"
-              id="rating"
-              name="rating"
-              min="0"
-              max="10"
-              step="0.1"
-              value={formData.rating}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+          <FormInput
+            label="Review Text"
+            name="reviewText"
+            type="textarea"
+            value={formData.reviewText}
+            onChange={handleInputChange}
+            required
+          />
+          <FormInput
+            label="Rating"
+            name="rating"
+            type="number"
+            min="0"
+            max="10"
+            step="0.1"
+            value={formData.rating}
+            onChange={handleInputChange}
+            required
+          />
 
           <div className="form-group">
-            <label htmlFor="image">Image:</label>
-            <Dropzone onDrop={handleFileDrop} accept="image/*">
-              {({ getRootProps, getInputProps }) => (
-                <div {...getRootProps()} className="dropzone">
-                  <input {...getInputProps()} />
-                  <p>Drag 'n' drop an image here, or click to select one</p>
-                </div>
-              )}
-            </Dropzone>
+            <label>Upload Image:</label>
+            {!file ? (
+              <Previews onImageDrop={handleFileDrop} />
+            ) : (
+              <div>
+                <p>File Uploaded: {file.name}</p>
+                <button onClick={() => setFile(null)}>Remove</button>
+              </div>
+            )}
           </div>
 
           <button type="submit">Submit</button>
         </form>
       </div>
-    </>
+    </div>
   );
 };
 
-export default ReviewForm;
+const FormInput = ({
+  label,
+  name,
+  type,
+  value,
+  onChange,
+  placeholder,
+  required,
+}) => {
+  return (
+    <div className="form-group">
+      <label htmlFor={name}>{label}:</label>
+      {type === "textarea" ? (
+        <textarea
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          required={required}
+        />
+      ) : (
+        <input
+          type={type}
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          required={required}
+        />
+      )}
+    </div>
+  );
+};
+
+export default CreateReviewForm;

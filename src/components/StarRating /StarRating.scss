@@ -1,0 +1,10 @@
+/* StarRating.css */
+.star {
+  font-size: 24px;
+  color: #ccc; /* Default star color */
+  cursor: pointer;
+}
+
+.star.filled {
+  color: #fddb3a; /* Filled star color */
+}
